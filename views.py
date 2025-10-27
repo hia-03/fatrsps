@@ -4,7 +4,8 @@ from database import get_my_db
 from models import *
 from schem import *
 from manage import app
-from helpers import get_hashed_password
+import uuid
+from helpers import get_hashed_password,verify_password,authenticate,is_authenticated
 account = FastAPI()
 
 
@@ -22,3 +23,33 @@ async def register_view(user_data:UsrSchemos,request:Request,response:Response,d
 
 
 
+@app.post("/login")
+async def login_view(user_data:Loginschemas,response:Response,db:Session = Depends(get_my_db)):
+    user = authenticate(user_data.username,user_data.password)
+    if not user:
+        raise ValueError('Inxel odam nest')
+
+    session_id = db.query(SessionModels).filter(SessionModels.user_id == user.id).first()
+
+    if not session_id:
+        token = str(uuid.uuid4())
+        session = SessionModels(token=token,user_id=user.id)
+        db.add(session)
+        db.commit()
+
+        response.set_cookie(key="session_key",value=token,httponly=True)
+
+        return f'Loged succesfully'
+
+
+@app.post("/logout",dependencies=[Depends(is_authenticated)])
+async def logout_view(response:Response,request:Request,db:Session = Depends(get_my_db)):
+    session_key = request.cookies.get("session_key")
+    session = db.query(SessionModels).filter(SessionModels.token == session_key).first()
+    
+    if session:
+        db.delete(session)
+        db.commit()
+        response.delete_cookie("session_key")
+        return {"message": "User logged out"}
+    return {"message":"Not logged in user"}

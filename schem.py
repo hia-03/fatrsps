@@ -16,5 +16,12 @@ class UsrSchemos(BaseModel):
             raise ValueError('Wash Parol Ne sovpadaet')
         return value
     
+class Loginschemas(BaseModel):
+    username:str
+    password:str
 
 
+
+class NoteSchemas(BaseModel):
+    name:str
+    desc:str

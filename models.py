@@ -23,6 +23,9 @@ class UsersModel(BaseModel):
     role = Column(String,default='user')
 
     Session = relationship("SessionModels",back_populates="user")
+    notes = relationship("NoteModels", back_populates="user")
+
+
 
 
 class SessionModels(BaseModel):
@@ -33,3 +36,18 @@ class SessionModels(BaseModel):
     user_id = Column(Integer,ForeignKey("users.id"))
 
     user = relationship("UsersModel",back_populates="Session")
+
+
+
+class NoteModels(BaseModel):
+    __tablename__ = "notemods"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    desc = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.now)
+
+    user = relationship("UsersModel", back_populates="notes")
+
+
